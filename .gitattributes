@@ -1,0 +1,2 @@
+# Ignore Unity test framework in language stats:
+test/Unity/* linguist-vendored

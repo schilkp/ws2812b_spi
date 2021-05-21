@@ -10,48 +10,33 @@ CFLAGS=-Wall -Wextra -Wpedantic -g -Isrc -Itest/Unity
 DEPFLAGS=-MMD -MP -MF $(BUILDDIR)/$*.d
 
 SOURCES=src/ws2812b.c test/Unity/unity.c 
-TESTS=$(wildcard test/*.c)
+TEST_SOURCES=$(wildcard test/*.c)
+TESTS=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.out))
 OBJECTS=$(addprefix $(BUILDDIR)/,$(SOURCES:.c=.o))
-RESULTS=$(addprefix $(BUILDDIR)/,$(TESTS:.c=.test))
 DEPENDENCIES=$(addprefix $(BUILDDIR)/,$(SOURCES:.c=.d))
+DEPENDENCIES+=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.d))
 
 BUILDDIR=build
 
-.PHONY: all test test_list_pass clean format
+.PHONY: all test clean format
 
-all: test test_list_pass
+all: test
 
-test: $(RESULTS) 
-	@echo
-	@echo
-	@echo "-----------------------IGNORES:-----------------------"
-	@grep -s -r -h --include "*.test" :IGNORE $(BUILDDIR)/ || true
-	@echo "-----------------------FAILURES:----------------------"
-	@grep -s -r -h --include "*.test" :FAIL $(BUILDDIR)/ || true
-
-test_list_pass: test 
-	@echo "-------------------------PASS:------------------------"
-	@grep -s -r -h --include "*.test" :PASS $(BUILDDIR)/ || true
+test: $(TESTS)
+	-python3 scripts/run_tests.py $(TESTS)
 
 clean:
 	rm -rf $(BUILDDIR)
 
-# format:
-#	python3 scripts/clang_format.py
-
-# Generate results by running all tests:
-%.test: %.out FORCE
-	@echo Running tests: $<
-	-./$< > $@ 2>&1
-
-FORCE: ;
+format:
+	python3 scripts/clang_format.py
 
 # Link tests:
 $(BUILDDIR)/%.out: $(BUILDDIR)/%.o $(OBJECTS)
 	$(CC) $^ -o $@
 
-# Compile 
-$(BUILDDIR)/%.o: %.c
+# Compile sources and test sources
+$(BUILDDIR)/%.o: %.c makefile
 	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $(DEPFLAGS) $*.c -o $@
 
