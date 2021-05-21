@@ -6,6 +6,7 @@
  */
 
 #include "ws2812b.h"
+#include <stdint.h>
 
 #define WS2812B_BYTE_REVERSE(_x_)                                              \
   (((_x_ & 0x80) >> 7) | ((_x_ & 0x40) >> 5) | ((_x_ & 0x20) >> 3) |           \
@@ -128,17 +129,70 @@ void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer) {
 }
 
 void ws2812b_iter_restart(ws2812b_handle_t *ws) {
-  // TODO
+  ws->state.iteration_index = 0;
 }
 
-uint_fast8_t ws2812b_iter_is_finished(ws2812b_handle_t *ws) {
-  // TODO
-  return 0;
+bool ws2812b_iter_is_finished(ws2812b_handle_t *ws) {
+  uint32_t length =
+      WS2812B_REQUIRED_BUFFER(ws->led_count, ws->config.packing,
+                              ws->config.prefix_len, ws->config.suffix_len);
+
+  return ws->state.iteration_index >= length;
 }
 
 uint8_t ws2812b_iter_next(ws2812b_handle_t *ws) {
-  // TODO
-  return 0;
+  uint32_t prefix_len = ws->config.prefix_len;
+  uint32_t suffix_len = ws->config.suffix_len;
+  uint32_t data_len = WS2812B_DATA_LENGTH(ws->led_count, ws->config.packing);
+
+  uint32_t i = ws->state.iteration_index;
+
+  if (i < prefix_len) {
+    // In prefix
+    ws->state.iteration_index++;
+    return 0x00;
+
+  } else if (i < prefix_len + data_len) {
+    // In data block
+
+    // Determined which LED, color and bit(s) should be sent:
+    uint32_t led = (i - prefix_len) / 24;
+
+    uint_fast8_t color = ((i - prefix_len) % 24) / 8;
+
+    uint_fast8_t bit = (i - prefix_len) % 8;
+
+    // Grab the current data byte in which the bit(s) that should
+    // be sent are located:
+    uint8_t data_byte;
+    if (color == 0) {
+      data_byte = ws->leds[led].green;
+    } else if (color == 1) {
+      data_byte = ws->leds[led].red;
+    } else {
+      data_byte = ws->leds[led].blue;
+    }
+
+    uint8_t result;
+    if (ws->config.packing == WS2812B_PACKING_SINGLE) {
+      // Single packing
+      result = construct_single_pulse(ws, bit, data_byte);
+      ws->state.iteration_index += 1;
+    } else {
+      // Double packing
+      result = construct_double_pulse(ws, bit, data_byte);
+      ws->state.iteration_index += 2;
+    }
+
+    return result;
+  } else if (i < prefix_len + data_len + suffix_len) {
+    // In suffix
+    ws->state.iteration_index++;
+    return 0x00;
+  }
+
+  // Iteration finished, return 0
+  return 0x00;
 }
 
 // private functions

@@ -8,6 +8,7 @@
 #ifndef INC_WS2812B_H_
 #define INC_WS2812B_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 // Disable message buffer with diagnostic info for errors during init.
@@ -79,15 +80,17 @@ typedef struct {
 } ws2812b_handle_t;
 
 #define WS2812B_REQUIRED_BUFFER(_led_count_, _packing_, _prefix_, _suffix_)    \
-  (((_led_count_) * ((_packing_) == WS2812B_PACKING_SINGLE ? 24 : 12)) +       \
-   (_prefix_) + (_suffix_))
+  (WS2812B_DATA_LENGTH(_led_count_, _packing_) + (_prefix_) + (_suffix_))
+
+#define WS2812B_DATA_LENGTH(_led_count_, _packing_)                            \
+  ((_led_count_) * ((_packing_) == WS2812B_PACKING_SINGLE ? 24 : 12))
 
 int ws2812b_init(ws2812b_handle_t *ws);
 
 void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer);
 
 void ws2812b_iter_restart(ws2812b_handle_t *ws);
-uint_fast8_t ws2812b_iter_is_finished(ws2812b_handle_t *ws);
+bool ws2812b_iter_is_finished(ws2812b_handle_t *ws);
 uint8_t ws2812b_iter_next(ws2812b_handle_t *ws);
 
 #endif /* INC_WS2812bB_H_ */
