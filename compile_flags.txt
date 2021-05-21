@@ -1,0 +1,10 @@
+-Isrc
+-Itest/Unity
+
+-Wall
+-Wextra
+-Wpedantic
+-Werror=vla
+
+-xc
+-std=c99
