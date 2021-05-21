@@ -15,7 +15,7 @@
   (((_x_ & 0x8) >> 3) | ((_x_ & 0x4) >> 1) | ((_x_ & 0x2) << 1) |              \
    ((_x_ & 0x1) << 3))
 
-#ifdef WS2812B_DISABLE_ERROR_MSG 
+#ifdef WS2812B_DISABLE_ERROR_MSG
 
 #define WS2812B_INIT_ASSERT(_test_, _msg_)                                     \
   do {                                                                         \

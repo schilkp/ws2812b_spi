@@ -74,7 +74,7 @@ typedef struct {
 } ws2812b_handle_t;
 
 #define WS2812B_REQUIRED_BUFFER(_led_count_, _packing_, _prefix_, _suffix_)    \
-  (((_led_count_) * ((_packing_) == WS2812B_PACKING_SINGLE ? 24 : 12)) +           \
+  (((_led_count_) * ((_packing_) == WS2812B_PACKING_SINGLE ? 24 : 12)) +       \
    (_prefix_) + (_suffix_))
 
 int ws2812b_init(ws2812b_handle_t *ws);
