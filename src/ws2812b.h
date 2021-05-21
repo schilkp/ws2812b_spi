@@ -10,119 +10,79 @@
 
 #include <stdint.h>
 
-// =======================
-// ==== Configuration ====
-// =======================
+// Disable message buffer with diagnostic info for errors during init.
+// saves RAM.
+// #define WS2812B_DISABLE_ERROR_MSG
 
-// Important: See driver's README.md for details about these settings.
+#ifndef WS2812B_DISABLE_ERROR_MSG
+extern char *ws2812b_error_msg;
+#endif
 
-// === 8-bit packing configuration: ===
-
-// Select number of bits that represent a '1' in 8-bit packing:
-//#define WS2812B_8BIT_1_BASE 0x03   // 2 bit
-//#define WS2812B_8BIT_1_BASE 0x07   // 3 bit
-//#define WS2812B_8BIT_1_BASE 0x0F   // 4 bit
-//#define WS2812B_8BIT_1_BASE 0x1F   // 5 bit
-#define WS2812B_8BIT_1_BASE 0x3F     // 6 bit (default)
-//#define WS2812B_8BIT_1_BASE 0x7F   // 7 bit
-
-// Select number of bits that represent a '0' in 8-bit packing:
-//#define WS2812B_8BIT_0_BASE 0x01 // 1 bit
-//#define WS2812B_8BIT_0_BASE 0x03 // 2 bit
-#define WS2812B_8BIT_0_BASE 0x07   // 3 bit (default)
-//#define WS2812B_8BIT_0_BASE 0x0F // 4 bit
-
-// Enable/disable 0 prefix by commenting the below line.
-// 0 prefix is incompatible with 7-bit '1' representation.
-#define WS2812_8BIT_0_PREF
-
-// === 4-bit packing configuration: ===
-
-// Select number of bits that represent a '1' in 4-bit packing:
-#define WS2812B_4BIT_1_BASE 0x03   // 2 bit (default)
-//#define WS2812B_4BIT_1_BASE 0x07 // 3 bit
-
-// Select number of bits that represent a '0' in 4-bit packing:
-#define WS2812B_4BIT_0_BASE 0x01   // 1 bit (default)
-//#define WS2812B_4BIT_0_BASE 0x03 // 2 bit
-
-// Enable/disable 0 prefix by commenting the below line.
-// 0 prefix is incompatible with 3-bit '1' representation.
-#define WS2812_4BIT_0_PREF
-
-// === General configuration: ===
-
-// Enable/Disable MSB-first SPI transmission (default is LSB-first transmission)
-//#define WS2812B_MSB_FIRST
-
-// Number of zeros added at beginning of buffer (default: 1)
-#define WS2812B_PREFIX_LEN 1
-
-// Number of zeros added at end of buffer (default: 4)
-#define WS2812B_SUFFIX_LEN 4
-
+// Number of bits in a pulse
 typedef enum {
-	WS2812B_PACKING_8b = 1, WS2812B_PACKING_4b = 2
+  WS2812B_PULSE_LEN_1b = 0x01,
+  WS2812B_PULSE_LEN_2b = 0x03,
+  WS2812B_PULSE_LEN_3b = 0x07,
+  WS2812B_PULSE_LEN_4b = 0x0F,
+  WS2812B_PULSE_LEN_5b = 0x1F,
+  WS2812B_PULSE_LEN_6b = 0x3F,
+  WS2812B_PULSE_LEN_7b = 0x7F
+} ws2812b_pulse_len_t;
+
+// Enable/Disable prefixing of each byte with a 0 bit
+typedef enum {
+  WS2812B_FIRST_BIT_0_DISABLED = 0,
+  WS2812B_FIRST_BIT_0_ENABLED = 1,
+} ws2812b_first_bit_0_t;
+
+// Pack 1 or 2 bits into a byte
+typedef enum {
+  WS2812B_PACKING_SINGLE = 1,
+  WS2812B_PACKING_DOUBLE = 2
 } ws2812b_packing_t;
 
+// SPI Transmission order:
+typedef enum { WS2812B_MSB_FIRST, WS2812B_LSB_FIRST } ws2812b_order_t;
+
 typedef struct {
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
+  ws2812b_packing_t packing;         // Number of bits packed into a byte.
+  ws2812b_pulse_len_t pulse_len_0;   // Number of bits that make a '1' pulse.
+  ws2812b_pulse_len_t pulse_len_1;   // Number of bits that make a '0' pulse.
+  ws2812b_first_bit_0_t first_bit_0; // Start every byte with a zero.
+  ws2812b_order_t spi_bit_order;     // SPI bit transmission order.
+  uint32_t prefix_len; // Number of zero bytes sent before every transmission.
+  uint32_t suffix_len; // Number of zero bytes sent after every transmission.
+} ws2812b_config_t;
+
+typedef struct {
+  uint8_t pulse_1;
+  uint8_t pulse_0;
+  uint32_t iteration_index;
+} ws2812b_state_t;
+
+typedef struct {
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
 } ws2812b_led_t;
 
 typedef struct {
-	ws2812b_packing_t packing;
-	uint32_t led_count;
-	ws2812b_led_t *leds;
+  ws2812b_config_t config;
+  uint32_t led_count;
+  ws2812b_led_t *leds;
+  ws2812b_state_t state;
 } ws2812b_handle_t;
 
+#define WS2812B_REQUIRED_BUFFER(_led_count_, _packing_, _prefix_, _suffix_)    \
+  (((_led_count_) * ((_packing_) == WS2812B_PACKING_SINGLE ? 24 : 12)) +           \
+   (_prefix_) + (_suffix_))
 
-#define WS2812B_REQUIRED_BUFFER_LEN(led_count, packing) ((led_count*(packing == WS2812B_PACKING_8b ? 24 : 12))+WS2812B_PREFIX_LEN+WS2812B_SUFFIX_LEN)
+int ws2812b_init(ws2812b_handle_t *ws);
 
 void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer);
 
 void ws2812b_iter_restart(ws2812b_handle_t *ws);
 uint_fast8_t ws2812b_iter_is_finished(ws2812b_handle_t *ws);
 uint8_t ws2812b_iter_next(ws2812b_handle_t *ws);
-
-// === Attempt to warn about some invalid configurations: ===
-
-// '0' representation needs to be defined:
-#ifndef WS2812B_8BIT_0_BASE
-#	error WS2812B: No 8-bit 0-representation selected.
-#endif /* WS2812B_8BIT_0_BASE */
-
-#ifndef WS2812B_4BIT_0_BASE
-#	error WS2812B: No 4-bit 0-representation selected.
-#endif /* WS2812B_8BIT_0_BASE */
-
-
-// '1' representation needs to be defined:
-#ifndef WS2812B_8BIT_1_BASE
-#	error WS2812B: No 8-bit 1-representation selected.
-#endif /* WS2812B_8BIT_1_BASE */
-
-#ifndef WS2812B_4BIT_1_BASE
-#	error WS2812B: No 4-bit 1-representation selected.
-#endif /* WS2812B_8BIT_0_BASE */
-
-// 8-bit 0-prefix and 7-bit '1' representation probably incompatible:
-// Very unlikely this will work on most platforms, but warning can be
-// disabled by commenting the warning directive.
-#if WS2812B_8BIT_1_BASE == 0x7F
-#	ifdef WS2812_8BIT_0_PREF
-#   	warning WS2812B: 8bit: 0-prefix and 7-bit 1-representation are very likely uncompatible
-#	endif /* WS2812_8BIT_0_PREF */
-#endif /* WS2812B_8BIT_1_BASE == 0x7F */
-
-// 4-bit 0-prefix and 3-bit '1' representation probably incompatible:
-// Very unlikely this will work on most platforms but warning can be
-// disabled by commenting the warning directive.
-#if WS2812B_4BIT_1_BASE == 0x07
-#	ifdef WS2812_4BIT_0_PREF
-#   	warning WS2812B: 4bit: 0-prefix and 3-bit 1-representation are very likely uncompatible
-#	endif /* WS2812_8BIT_0_PREF */
-#endif /* WS2812B_8BIT_1_BASE == 0x7F */
 
 #endif /* INC_WS2812bB_H_ */
