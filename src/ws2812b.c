@@ -8,21 +8,19 @@
 #include "ws2812b.h"
 #include <stdint.h>
 
-#define WS2812B_BYTE_REVERSE(_x_)                                              \
-  (((_x_ & 0x80) >> 7) | ((_x_ & 0x40) >> 5) | ((_x_ & 0x20) >> 3) |           \
-   ((_x_ & 0x10) >> 1) | ((_x_ & 0x08) << 1) | ((_x_ & 0x04) << 3) |           \
-   ((_x_ & 0x02) << 5) | ((_x_ & 0x01) << 7))
-#define WS2812B_NIBBLE_REVERSE(_x_)                                            \
-  (((_x_ & 0x8) >> 3) | ((_x_ & 0x4) >> 1) | ((_x_ & 0x2) << 1) |              \
-   ((_x_ & 0x1) << 3))
+#define WS2812B_BYTE_REVERSE(_x_)                                                                  \
+  (((_x_ & 0x80) >> 7) | ((_x_ & 0x40) >> 5) | ((_x_ & 0x20) >> 3) | ((_x_ & 0x10) >> 1) |         \
+   ((_x_ & 0x08) << 1) | ((_x_ & 0x04) << 3) | ((_x_ & 0x02) << 5) | ((_x_ & 0x01) << 7))
+#define WS2812B_NIBBLE_REVERSE(_x_)                                                                \
+  (((_x_ & 0x8) >> 3) | ((_x_ & 0x4) >> 1) | ((_x_ & 0x2) << 1) | ((_x_ & 0x1) << 3))
 
 #ifdef WS2812B_DISABLE_ERROR_MSG
 
-#define WS2812B_INIT_ASSERT(_test_, _msg_)                                     \
-  do {                                                                         \
-    if (!(_test_)) {                                                           \
-      return -1;                                                               \
-    }                                                                          \
+#define WS2812B_INIT_ASSERT(_test_, _msg_)                                                         \
+  do {                                                                                             \
+    if (!(_test_)) {                                                                               \
+      return -1;                                                                                   \
+    }                                                                                              \
   } while (0)
 
 #else
@@ -33,22 +31,20 @@
 char error_msg[WS2812B_ERROR_MSG_MAX_LEN];
 char *ws2812b_error_msg;
 
-#define WS2812B_INIT_ASSERT(_test_, _msg_)                                     \
-  do {                                                                         \
-    if (!(_test_)) {                                                           \
-      snprintf(error_msg, WS2812B_ERROR_MSG_MAX_LEN, "%s", _msg_);             \
-      return -1;                                                               \
-    }                                                                          \
+#define WS2812B_INIT_ASSERT(_test_, _msg_)                                                         \
+  do {                                                                                             \
+    if (!(_test_)) {                                                                               \
+      snprintf(error_msg, WS2812B_ERROR_MSG_MAX_LEN, "%s", _msg_);                                 \
+      return -1;                                                                                   \
+    }                                                                                              \
   } while (0)
 
 #endif /* WS2812B_ERROR_MSG_MAX_LEN */
 
 // Private prototypes
 static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer);
-static uint8_t construct_single_pulse(ws2812b_handle_t *ws, uint_fast8_t b,
-                                      uint8_t value);
-static uint8_t construct_double_pulse(ws2812b_handle_t *ws, uint_fast8_t b,
-                                      uint8_t value);
+static uint8_t construct_single_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value);
+static uint8_t construct_double_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value);
 
 int ws2812b_init(ws2812b_handle_t *ws) {
 
@@ -70,10 +66,9 @@ int ws2812b_init(ws2812b_handle_t *ws) {
                       "ws2812b: config.pulse_len_0 is invalid!");
 
   // Assert first_bit_0 is valid
-  WS2812B_INIT_ASSERT(
-      (ws->config.first_bit_0 == WS2812B_FIRST_BIT_0_DISABLED) ||
-          (ws->config.first_bit_0 == WS2812B_FIRST_BIT_0_ENABLED),
-      "ws2812b: config.first_bit_0 is invalid!");
+  WS2812B_INIT_ASSERT((ws->config.first_bit_0 == WS2812B_FIRST_BIT_0_DISABLED) ||
+                          (ws->config.first_bit_0 == WS2812B_FIRST_BIT_0_ENABLED),
+                      "ws2812b: config.first_bit_0 is invalid!");
 
   // Assert spi_bit_order is valid
   WS2812B_INIT_ASSERT((ws->config.spi_bit_order == WS2812B_LSB_FIRST) ||
@@ -128,14 +123,11 @@ void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer) {
   }
 }
 
-void ws2812b_iter_restart(ws2812b_handle_t *ws) {
-  ws->state.iteration_index = 0;
-}
+void ws2812b_iter_restart(ws2812b_handle_t *ws) { ws->state.iteration_index = 0; }
 
 bool ws2812b_iter_is_finished(ws2812b_handle_t *ws) {
-  uint32_t length =
-      WS2812B_REQUIRED_BUFFER(ws->led_count, ws->config.packing,
-                              ws->config.prefix_len, ws->config.suffix_len);
+  uint32_t length = WS2812B_REQUIRED_BUFFER(ws->led_count, ws->config.packing,
+                                            ws->config.prefix_len, ws->config.suffix_len);
 
   return ws->state.iteration_index >= length;
 }
@@ -213,13 +205,11 @@ static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer) {
   }
 }
 
-static uint8_t construct_single_pulse(ws2812b_handle_t *ws, uint_fast8_t b,
-                                      uint8_t value) {
+static uint8_t construct_single_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value) {
   return (value & ((0x80U) >> b) ? ws->state.pulse_1 : ws->state.pulse_0);
 }
 
-static uint8_t construct_double_pulse(ws2812b_handle_t *ws, uint_fast8_t b,
-                                      uint8_t value) {
+static uint8_t construct_double_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value) {
   uint8_t result;
   uint8_t pulse_1 = ws->state.pulse_1;
   uint8_t pulse_0 = ws->state.pulse_0;

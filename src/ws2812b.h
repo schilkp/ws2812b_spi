@@ -30,9 +30,9 @@ typedef enum {
   WS2812B_PULSE_LEN_7b = 0x7F
 } ws2812b_pulse_len_t;
 
-#define WS2812B_IS_PULSE_LEN(_x_)                                              \
-  ((_x_) == WS2812B_PULSE_LEN_1b || (_x_) == WS2812B_PULSE_LEN_2b ||           \
-   (_x_) == WS2812B_PULSE_LEN_3b || (_x_) == WS2812B_PULSE_LEN_4b ||           \
+#define WS2812B_IS_PULSE_LEN(_x_)                                                                  \
+  ((_x_) == WS2812B_PULSE_LEN_1b || (_x_) == WS2812B_PULSE_LEN_2b ||                               \
+   (_x_) == WS2812B_PULSE_LEN_3b || (_x_) == WS2812B_PULSE_LEN_4b ||                               \
    (_x_) == WS2812B_PULSE_LEN_6b || (_x_) == WS2812B_PULSE_LEN_7b)
 
 // Enable/Disable prefixing of each byte with a 0 bit
@@ -42,10 +42,7 @@ typedef enum {
 } ws2812b_first_bit_0_t;
 
 // Pack 1 or 2 bits into a byte
-typedef enum {
-  WS2812B_PACKING_SINGLE = 1,
-  WS2812B_PACKING_DOUBLE = 2
-} ws2812b_packing_t;
+typedef enum { WS2812B_PACKING_SINGLE = 1, WS2812B_PACKING_DOUBLE = 2 } ws2812b_packing_t;
 
 // SPI Transmission order:
 typedef enum { WS2812B_MSB_FIRST, WS2812B_LSB_FIRST } ws2812b_order_t;
@@ -56,8 +53,8 @@ typedef struct {
   ws2812b_pulse_len_t pulse_len_1;   // Number of bits that make a '0' pulse.
   ws2812b_first_bit_0_t first_bit_0; // Start every byte with a zero.
   ws2812b_order_t spi_bit_order;     // SPI bit transmission order.
-  uint32_t prefix_len; // Number of zero bytes sent before every transmission.
-  uint32_t suffix_len; // Number of zero bytes sent after every transmission.
+  uint32_t prefix_len;               // Number of zero bytes sent before every transmission.
+  uint32_t suffix_len;               // Number of zero bytes sent after every transmission.
 } ws2812b_config_t;
 
 typedef struct {
@@ -79,10 +76,10 @@ typedef struct {
   ws2812b_state_t state;
 } ws2812b_handle_t;
 
-#define WS2812B_REQUIRED_BUFFER(_led_count_, _packing_, _prefix_, _suffix_)    \
+#define WS2812B_REQUIRED_BUFFER(_led_count_, _packing_, _prefix_, _suffix_)                        \
   (WS2812B_DATA_LENGTH(_led_count_, _packing_) + (_prefix_) + (_suffix_))
 
-#define WS2812B_DATA_LENGTH(_led_count_, _packing_)                            \
+#define WS2812B_DATA_LENGTH(_led_count_, _packing_)                                                \
   ((_led_count_) * ((_packing_) == WS2812B_PACKING_SINGLE ? 24 : 12))
 
 int ws2812b_init(ws2812b_handle_t *ws);

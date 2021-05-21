@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python3 scripts/clang_format.py -v
