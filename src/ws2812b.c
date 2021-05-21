@@ -35,7 +35,7 @@ char *ws2812b_error_msg;
 #define WS2812B_INIT_ASSERT(_test_, _msg_)                                     \
   do {                                                                         \
     if (!(_test_)) {                                                           \
-      snprintf("", WS2812B_ERROR_MSG_MAX_LEN, _msg_);                          \
+      snprintf("%s", WS2812B_ERROR_MSG_MAX_LEN, _msg_);                        \
       return -1;                                                               \
     }                                                                          \
   } while (0)
