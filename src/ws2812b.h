@@ -29,6 +29,11 @@ typedef enum {
   WS2812B_PULSE_LEN_7b = 0x7F
 } ws2812b_pulse_len_t;
 
+#define WS2812B_IS_PULSE_LEN(_x_)                                              \
+  ((_x_) == WS2812B_PULSE_LEN_1b || (_x_) == WS2812B_PULSE_LEN_2b ||           \
+   (_x_) == WS2812B_PULSE_LEN_3b || (_x_) == WS2812B_PULSE_LEN_4b ||           \
+   (_x_) == WS2812B_PULSE_LEN_6b || (_x_) == WS2812B_PULSE_LEN_7b)
+
 // Enable/Disable prefixing of each byte with a 0 bit
 typedef enum {
   WS2812B_FIRST_BIT_0_DISABLED = 0,

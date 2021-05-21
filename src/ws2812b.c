@@ -35,12 +35,12 @@ char *ws2812b_error_msg;
 #define WS2812B_INIT_ASSERT(_test_, _msg_)                                     \
   do {                                                                         \
     if (!(_test_)) {                                                           \
-      snprintf("%s", WS2812B_ERROR_MSG_MAX_LEN, _msg_);                        \
+      snprintf(error_msg, WS2812B_ERROR_MSG_MAX_LEN, "%s", _msg_);             \
       return -1;                                                               \
     }                                                                          \
   } while (0)
 
-#endif /* WS2812B_DISABLE_STATIC_ASSERT */
+#endif /* WS2812B_ERROR_MSG_MAX_LEN */
 
 // Private prototypes
 static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer);
@@ -53,7 +53,7 @@ int ws2812b_init(ws2812b_handle_t *ws) {
 
 #ifndef WS2812B_DISABLE_ERROR_MSG
   ws2812b_error_msg = error_msg;
-#endif /* WS2812B_DISABLE_STATIC_ASSERT_STATIC_ASSERT */
+#endif /* WS2812B_DISABLE_ERROR_MSG */
 
   // Assert packing is valid
   WS2812B_INIT_ASSERT((ws->config.packing == WS2812B_PACKING_DOUBLE) ||
@@ -61,16 +61,23 @@ int ws2812b_init(ws2812b_handle_t *ws) {
                       "ws2812b: config.packing is invalid!");
 
   // Assert pulse_len_1 is valid
-  // TODO
+  WS2812B_INIT_ASSERT(WS2812B_IS_PULSE_LEN(ws->config.pulse_len_1),
+                      "ws2812b: config.pulse_len_1 is invalid!");
 
   // Asert pulse_len_0 is valid
-  // TODO
+  WS2812B_INIT_ASSERT(WS2812B_IS_PULSE_LEN(ws->config.pulse_len_0),
+                      "ws2812b: config.pulse_len_0 is invalid!");
 
   // Assert first_bit_0 is valid
-  // TODO
+  WS2812B_INIT_ASSERT(
+      (ws->config.first_bit_0 == WS2812B_FIRST_BIT_0_DISABLED) ||
+          (ws->config.first_bit_0 == WS2812B_FIRST_BIT_0_ENABLED),
+      "ws2812b: config.first_bit_0 is invalid!");
 
   // Assert spi_bit_order is valid
-  // TODO
+  WS2812B_INIT_ASSERT((ws->config.spi_bit_order == WS2812B_LSB_FIRST) ||
+                          (ws->config.spi_bit_order == WS2812B_MSB_FIRST),
+                      "ws2812b: config.spi_bit_order is invalid!");
 
   // Assert that the '1' pulse is longer than the '0' pulse:
   WS2812B_INIT_ASSERT(ws->config.pulse_len_1 > ws->config.pulse_len_0,
