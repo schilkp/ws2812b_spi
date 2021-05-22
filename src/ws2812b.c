@@ -99,6 +99,11 @@ int ws2812b_init(ws2812b_handle_t *ws) {
   return 0;
 }
 
+uint32_t ws2812b_required_buffer_len(ws2812b_handle_t *ws) {
+  return WS2812B_REQUIRED_BUFFER_LEN(ws->led_count, ws->config.packing, ws->config.prefix_len,
+                                     ws->config.suffix_len);
+}
+
 void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer) {
   ws2812b_led_t *led = ws->leds;
 
@@ -126,8 +131,8 @@ void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer) {
 void ws2812b_iter_restart(ws2812b_handle_t *ws) { ws->state.iteration_index = 0; }
 
 bool ws2812b_iter_is_finished(ws2812b_handle_t *ws) {
-  uint32_t length = WS2812B_REQUIRED_BUFFER(ws->led_count, ws->config.packing,
-                                            ws->config.prefix_len, ws->config.suffix_len);
+  uint32_t length = WS2812B_REQUIRED_BUFFER_LEN(ws->led_count, ws->config.packing,
+                                                ws->config.prefix_len, ws->config.suffix_len);
 
   return ws->state.iteration_index >= length;
 }
@@ -135,7 +140,7 @@ bool ws2812b_iter_is_finished(ws2812b_handle_t *ws) {
 uint8_t ws2812b_iter_next(ws2812b_handle_t *ws) {
   uint32_t prefix_len = ws->config.prefix_len;
   uint32_t suffix_len = ws->config.suffix_len;
-  uint32_t data_len = WS2812B_DATA_LENGTH(ws->led_count, ws->config.packing);
+  uint32_t data_len = WS2812B_DATA_LEN(ws->led_count, ws->config.packing);
 
   uint32_t i = ws->state.iteration_index;
 

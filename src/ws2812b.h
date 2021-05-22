@@ -76,13 +76,15 @@ typedef struct {
   ws2812b_state_t state;
 } ws2812b_handle_t;
 
-#define WS2812B_REQUIRED_BUFFER(_led_count_, _packing_, _prefix_, _suffix_)                        \
-  (WS2812B_DATA_LENGTH(_led_count_, _packing_) + (_prefix_) + (_suffix_))
+#define WS2812B_REQUIRED_BUFFER_LEN(_led_count_, _packing_, _prefix_, _suffix_)                    \
+  (WS2812B_DATA_LEN(_led_count_, _packing_) + (_prefix_) + (_suffix_))
 
-#define WS2812B_DATA_LENGTH(_led_count_, _packing_)                                                \
+#define WS2812B_DATA_LEN(_led_count_, _packing_)                                                   \
   ((_led_count_) * ((_packing_) == WS2812B_PACKING_SINGLE ? 24 : 12))
 
 int ws2812b_init(ws2812b_handle_t *ws);
+
+uint32_t ws2812b_required_buffer_len(ws2812b_handle_t *ws);
 
 void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer);
 

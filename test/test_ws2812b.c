@@ -3,18 +3,48 @@
 #include "unity_internals.h"
 #include "ws2812b.h"
 
+#define UNUSED(_x_) (void)(_x_)
+
+void test_no_vla(void) {
+  // Ensure the REQUIRED_BUFFER_LEN macro allows the creation
+  // of a non-vla array when used with constant arguments.
+
+  // This test will not compile otherwise, as -Werror=vla is set
+
+  volatile uint8_t buffer[WS2812B_REQUIRED_BUFFER_LEN(10, WS2812B_PACKING_DOUBLE, 1, 4)];
+
+  UNUSED(buffer);
+
+  TEST_PASS();
+}
+
 void test_buffer_len(void) {
-  TEST_ASSERT_EQUAL_INT(WS2812B_REQUIRED_BUFFER(1, WS2812B_PACKING_SINGLE, 0, 0), 24);
+  TEST_ASSERT_EQUAL_UINT32(24, WS2812B_REQUIRED_BUFFER_LEN(1, WS2812B_PACKING_SINGLE, 0, 0));
 
-  TEST_ASSERT_EQUAL_INT(WS2812B_REQUIRED_BUFFER(1, WS2812B_PACKING_DOUBLE, 0, 0), 12);
+  TEST_ASSERT_EQUAL_UINT32(12, WS2812B_REQUIRED_BUFFER_LEN(1, WS2812B_PACKING_DOUBLE, 0, 0));
 
-  TEST_ASSERT_EQUAL_INT(WS2812B_REQUIRED_BUFFER(2, WS2812B_PACKING_SINGLE, 1, 4), 53);
+  TEST_ASSERT_EQUAL_UINT32(53, WS2812B_REQUIRED_BUFFER_LEN(2, WS2812B_PACKING_SINGLE, 1, 4));
 
-  TEST_ASSERT_EQUAL_INT(WS2812B_REQUIRED_BUFFER(2, WS2812B_PACKING_DOUBLE, 1, 4), 29);
+  TEST_ASSERT_EQUAL_UINT32(29, WS2812B_REQUIRED_BUFFER_LEN(2, WS2812B_PACKING_DOUBLE, 1, 4));
 
-  TEST_ASSERT_EQUAL_INT(WS2812B_REQUIRED_BUFFER(0, WS2812B_PACKING_SINGLE, 0, 0), 0);
+  TEST_ASSERT_EQUAL_UINT32(0, WS2812B_REQUIRED_BUFFER_LEN(0, WS2812B_PACKING_SINGLE, 0, 0));
 
-  TEST_ASSERT_EQUAL_INT(WS2812B_REQUIRED_BUFFER(0, WS2812B_PACKING_SINGLE, 1, 4), 5);
+  TEST_ASSERT_EQUAL_UINT32(5, WS2812B_REQUIRED_BUFFER_LEN(0, WS2812B_PACKING_SINGLE, 1, 4));
+
+  // Sanity check required_buffer_len function, which is just a wrapper around this macro:
+  ws2812b_handle_t h;
+
+  h.led_count = 2;
+  h.config.packing = WS2812B_PACKING_SINGLE;
+  h.config.prefix_len = 1;
+  h.config.suffix_len = 4;
+  TEST_ASSERT_EQUAL_UINT32(53, ws2812b_required_buffer_len(&h));
+
+  h.led_count = 2;
+  h.config.packing = WS2812B_PACKING_DOUBLE;
+  h.config.prefix_len = 1;
+  h.config.suffix_len = 4;
+  TEST_ASSERT_EQUAL_UINT32(29, ws2812b_required_buffer_len(&h));
 }
 
 void test_invalid_config_detected(void) {
@@ -87,6 +117,7 @@ void tearDown(void) {}
 
 int main(void) {
   UNITY_BEGIN();
+  RUN_TEST(test_no_vla);
   RUN_TEST(test_buffer_len);
   RUN_TEST(test_invalid_config_detected);
   return UNITY_END();

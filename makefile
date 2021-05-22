@@ -6,7 +6,7 @@
 # Compiler + Flags
 CC=gcc
 LDFLAGS=
-CFLAGS=-Wall -Wextra -Wpedantic -g -Isrc -Itest/Unity
+CFLAGS=-Wall -Wextra -Wpedantic -Werror=vla -g -Isrc -Itest/Unity
 DEPFLAGS=-MMD -MP -MF $(BUILDDIR)/$*.d
 
 SOURCES=src/ws2812b.c test/Unity/unity.c 
