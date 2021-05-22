@@ -1,0 +1,13 @@
+{signal: [
+  ['Single',
+  {name: 'CLK', wave: '0.P.......P.......l.'},
+  {name: 'SDO', wave: '0.h.l.....h.....l...'},
+  ],
+  {},
+  ['Double',
+  {name: 'CLK', wave: '0.HLHLHLHLHLHLHLHL..'},
+  {name: 'SDO', wave: '0.h.l.....h.....l...'},
+  ],
+  {},
+  {name: 'Data', wave: 'x.=.......=.......x.', data:['0','1']}
+]}

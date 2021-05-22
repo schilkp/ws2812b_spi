@@ -1,0 +1,11 @@
+{signal: [
+  ['Signal 1',
+  {name: 'CLK', wave: '0.hlhlhlhlhlhlhlhl...hlhlhlhlhlhlhlhl..'},
+  {name: 'SDO', wave: 'h....l...........h......l...........h..'},
+  ],
+  {},
+  ['Signal 2',
+  {name: 'CLK', wave: '0.hlhlhlhlhlhlhlhl...hlhlhlhlhlhlhlhl..'},
+  {name: 'SDO', wave: 'l..h...l..............h...l............'},
+  ],
+]}
