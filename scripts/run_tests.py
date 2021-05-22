@@ -25,7 +25,8 @@ def main(test_suites):
 
         if '-----------------------' not in suite_output:
             # Test suite crashed
-            print("Test suite %s crashed, test results not reported!" % test_suite_name)
+            print("Test suite %s crashed, test results not reported!" %
+                  test_suite_name)
             tests_crashed.append(test_suite_name)
         else:
             # Test suite completed
@@ -46,7 +47,8 @@ def main(test_suites):
                 elif ':IGNORE' in line:
                     tests_ignored.append(line)
                 else:
-                    print("Error parsing test output '%s', ignoring line. Did the test crash?" % line)
+                    print("Error parsing test output '%s', ignoring line. Did the test crash?"
+                          % line)
 
     # Print summary:
     crashes = len(tests_crashed)
@@ -62,7 +64,8 @@ def main(test_suites):
         print("Warning! %i test suite(s) crashed. Not all tests were performed!" % crashes)
     print("Ran %i tests." % tests)
     print("Failed: %i  Passed: %i  Ignore: %i" % (fails, passes, ignores))
-    print("Success rate (without ignored tests): %2.2f%%" % (float(fails) / (tests - ignores) * 100))
+    print("Success rate (without ignored tests): %2.2f%%" %
+          (float(passes) / (tests - ignores) * 100))
     print()
     print("============ Breakdown ============")
     if crashes != 0:
@@ -96,6 +99,7 @@ def main(test_suites):
         print()
         print()
         sys.exit(1)
+
 
 if __name__ == '__main__':
     args = sys.argv.copy()
