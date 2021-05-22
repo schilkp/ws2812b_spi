@@ -14,6 +14,12 @@
 #define WS2812B_NIBBLE_REVERSE(_x_)                                                                \
   (((_x_ & 0x8) >> 3) | ((_x_ & 0x4) >> 1) | ((_x_ & 0x2) << 1) | ((_x_ & 0x1) << 3))
 
+#define WS2812B_IS_PULSE_LEN(_x_)                                                                  \
+  ((_x_) == WS2812B_PULSE_LEN_1b || (_x_) == WS2812B_PULSE_LEN_2b ||                               \
+   (_x_) == WS2812B_PULSE_LEN_3b || (_x_) == WS2812B_PULSE_LEN_4b ||                               \
+   (_x_) == WS2812B_PULSE_LEN_6b || (_x_) == WS2812B_PULSE_LEN_5b ||                               \
+   (_x_) == WS2812B_PULSE_LEN_7b)
+
 #ifdef WS2812B_DISABLE_ERROR_MSG
 
 #define WS2812B_INIT_ASSERT(_test_, _msg_)                                                         \
@@ -131,16 +137,24 @@ void ws2812b_fill_buffer(ws2812b_handle_t *ws, uint8_t *buffer) {
 void ws2812b_iter_restart(ws2812b_handle_t *ws) { ws->state.iteration_index = 0; }
 
 bool ws2812b_iter_is_finished(ws2812b_handle_t *ws) {
-  uint32_t length = WS2812B_REQUIRED_BUFFER_LEN(ws->led_count, ws->config.packing,
-                                                ws->config.prefix_len, ws->config.suffix_len);
+  // The iterator index is always handled as if in single packing mode,
+  // so the iterator limit has to be calculated using single packing no matter
+  // what is configued.
 
-  return ws->state.iteration_index >= length;
+  const uint32_t iteration_limit = WS2812B_REQUIRED_BUFFER_LEN(
+      ws->led_count, WS2812B_PACKING_SINGLE, ws->config.prefix_len, ws->config.suffix_len);
+
+  return ws->state.iteration_index >= iteration_limit;
 }
 
 uint8_t ws2812b_iter_next(ws2812b_handle_t *ws) {
+  // The iterator index is always handled as if in single packing mode,
+  // so the block lengths have to be calculated using single packing no matter
+  // what is configued.
+
   uint32_t prefix_len = ws->config.prefix_len;
   uint32_t suffix_len = ws->config.suffix_len;
-  uint32_t data_len = WS2812B_DATA_LEN(ws->led_count, ws->config.packing);
+  uint32_t data_len = WS2812B_DATA_LEN(ws->led_count, WS2812B_PACKING_SINGLE);
 
   uint32_t i = ws->state.iteration_index;
 
