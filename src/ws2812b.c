@@ -33,7 +33,7 @@
 
 #include <stdio.h>
 
-#define WS2812B_ERROR_MSG_MAX_LEN 200
+#define WS2812B_ERROR_MSG_MAX_LEN 60
 char error_msg[WS2812B_ERROR_MSG_MAX_LEN];
 char *ws2812b_error_msg;
 
@@ -84,6 +84,12 @@ int ws2812b_init(ws2812b_handle_t *ws) {
   // Assert that the '1' pulse is longer than the '0' pulse:
   WS2812B_INIT_ASSERT(ws->config.pulse_len_1 > ws->config.pulse_len_0,
                       "ws2812b: One-pulse must be longer than zero-pulse!");
+
+  // Assert that pulse is not too long if in double packing:
+  if (ws->config.packing == WS2812B_PACKING_DOUBLE) {
+    WS2812B_INIT_ASSERT(ws->config.pulse_len_1 < WS2812B_PULSE_LEN_4b,
+                        "ws2812b: Pulse is too long for double packing!");
+  }
 
   // Apply 0 prefix to pulse if selected
   ws->state.pulse_0 = ws->config.pulse_len_0 << ws->config.first_bit_0;

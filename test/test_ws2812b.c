@@ -205,6 +205,22 @@ void test_invalid_config_detected(void) {
   h_test.config.pulse_len_0 = WS2812B_PULSE_LEN_2b;
   h_test.config.pulse_len_1 = WS2812B_PULSE_LEN_1b;
   TEST_ASSERT_TRUE_MESSAGE(ws2812b_init(&h_test), "Did not detect that pulses where same length!");
+
+  // Make sure pulses that are too long for the double packing are detected:
+  // Test pulse_len_1 only: if pulse_len_0 is too long, pulse_len_1 is also too long, or swapped
+  // pulse length would trigger
+  uint8_t lengths[] = {WS2812B_PULSE_LEN_4b, WS2812B_PULSE_LEN_5b, WS2812B_PULSE_LEN_6b,
+                       WS2812B_PULSE_LEN_7b};
+
+  memcpy(&h_test, &h_valid, sizeof(ws2812b_handle_t));
+  h_test.config.packing = WS2812B_PACKING_DOUBLE;
+  h_test.config.pulse_len_0 = WS2812B_PULSE_LEN_1b;
+
+  for (uint32_t len = 0; len < 4; len++) {
+    h_test.config.pulse_len_1 = lengths[len];
+    TEST_ASSERT_TRUE_MESSAGE(ws2812b_init(&h_test),
+                             "Did not detect that pulses is too long for double packing!");
+  }
 }
 
 #define ITERATOR_LED_COUNT 10
