@@ -47,6 +47,7 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   for (uint32_t i = 0; i < prefix_len; i++) {
     if (buf[i] != 0) {
       snprintf(error_msg, ERROR_MSG_LEN, "Prefix is not 0 at buffer index 0x%x!", i);
+      free(buf);
       return false;
     }
   }
@@ -56,6 +57,7 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
     if (buf[i + prefix_len] != buf_data_expected[i]) {
       snprintf(error_msg, ERROR_MSG_LEN, "Buffer is wrong at %i, expected 0x%x, got 0x%x!",
                i + prefix_len, buf_data_expected[i], buf[i + prefix_len]);
+      free(buf);
       return false;
     }
   }
@@ -64,6 +66,8 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   for (uint32_t i = prefix_len + data_len; i < prefix_len + data_len + suffix_len; i++) {
     if (buf[i] != 0) {
       snprintf(error_msg, ERROR_MSG_LEN, "Suffix is not 0 at buffer index 0x%x!", i);
+      free(buf);
+      return false;
     }
   }
 
@@ -72,6 +76,8 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   util_generate_iter_buf(h, iter_buf);
   if (!ws2812b_iter_is_finished(h)) {
     snprintf(error_msg, ERROR_MSG_LEN, "Iterator did not report finished!");
+    free(iter_buf);
+    free(buf);
     return false;
   }
 
@@ -81,10 +87,14 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
       snprintf(error_msg, ERROR_MSG_LEN,
                "Iterator does not match buffer at %i, expected 0x%x, got 0x%x!", i, buf[i],
                iter_buf[i]);
+      free(iter_buf);
+      free(buf);
       return false;
     }
   }
 
+  free(iter_buf);
+  free(buf);
   return true;
 }
 
@@ -397,24 +407,160 @@ void test_multiple_leds(void) {
 }
 
 void test_pulse_length() {
-  TEST_IGNORE();
-  // Test with single packing
+  ws2812b_led_t leds[1];
+  leds[0].green = 0x00;
+  leds[0].red = 0x00;
+  leds[0].blue = 0x00;
 
-  // Test with double packing
+  ws2812b_handle_t h;
+  h.led_count = 1;
+  h.leds = leds;
+  h.config.packing = WS2812B_PACKING_SINGLE;
+  h.config.pulse_len_0 = WS2812B_PULSE_LEN_1b;
+  h.config.pulse_len_1 = WS2812B_PULSE_LEN_2b;
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_DISABLED;
+  h.config.spi_bit_order = WS2812B_LSB_FIRST;
+  h.config.prefix_len = 0;
+  h.config.suffix_len = 0;
+
+  uint8_t buf_data_expected[24] = {0};
+
+  // Test WS2812B_PULSE_LEN_1b
+  memset(buf_data_expected, 0x1, 24);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+
+  // Test WS2812B_PULSE_LEN_2b - WS2812B_PULSE_LEN_7b
+  leds[0].green = 0xff;
+  leds[0].red = 0xff;
+  leds[0].blue = 0xff;
+  uint8_t lengths[] = {WS2812B_PULSE_LEN_2b, WS2812B_PULSE_LEN_3b, WS2812B_PULSE_LEN_4b,
+                       WS2812B_PULSE_LEN_5b, WS2812B_PULSE_LEN_6b, WS2812B_PULSE_LEN_7b};
+
+  for (uint32_t len = 0; len < 6; len++) {
+    h.config.pulse_len_1 = lengths[len];
+    memset(buf_data_expected, lengths[len], 24);
+    TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+  }
 }
 
 void test_first_bit_0() {
-  TEST_IGNORE();
-  // Test with single packing
+  ws2812b_led_t leds[1];
+  leds[0].green = 0xaa;
+  leds[0].red = 0x55;
+  leds[0].blue = 0x0F;
 
-  // Test with double packing
+  // Test with single packing
+  ws2812b_handle_t h;
+  h.led_count = 1;
+  h.leds = leds;
+  h.config.packing = WS2812B_PACKING_SINGLE;
+  h.config.pulse_len_0 = WS2812B_PULSE_LEN_3b;
+  h.config.pulse_len_1 = WS2812B_PULSE_LEN_6b;
+  h.config.spi_bit_order = WS2812B_LSB_FIRST;
+  h.config.prefix_len = 0;
+  h.config.suffix_len = 0;
+
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_DISABLED;
+  uint8_t p1 = 0x3F;
+  uint8_t p0 = 0x07;
+  uint8_t buf_data_expected[24] = {/* g=0xaa */ p1, p0, p1, p0, p1, p0, p1, p0,
+                                   /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
+                                   /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_ENABLED;
+  p1 = 0x7E;
+  p0 = 0x0E;
+  uint8_t buf_data_expected_with_0[24] = {/* g=0xaa */ p1, p0, p1, p0, p1, p0, p1, p0,
+                                          /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
+                                          /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
+
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_with_0), error_msg);
+
+  // test with double packing
+  h.config.packing = WS2812B_PACKING_DOUBLE;
+  h.config.pulse_len_0 = WS2812B_PULSE_LEN_1b;
+  h.config.pulse_len_1 = WS2812B_PULSE_LEN_2b;
+
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_DISABLED;
+  uint8_t p11 = 0x33;
+  uint8_t p10 = 0x13;
+  uint8_t p01 = 0x31;
+  uint8_t p00 = 0x11;
+  uint8_t buf_data_expected_double[12] = {/* g=0xaa */ p10, p10, p10, p10,
+                                          /* r=0x55 */ p01, p01, p01, p01,
+                                          /* b=0x0f */ p00, p00, p11, p11};
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), error_msg);
+
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_ENABLED;
+  p11 = 0x66;
+  p10 = 0x26;
+  p01 = 0x62;
+  p00 = 0x22;
+  uint8_t buf_data_expected_double_with_0[12] = {/* g=0xaa */ p10, p10, p10, p10,
+                                                 /* r=0x55 */ p01, p01, p01, p01,
+                                                 /* b=0x0f */ p00, p00, p11, p11};
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double_with_0), error_msg);
 }
 
 void test_spi_bit_order(void) {
-  TEST_IGNORE();
-  // Test with single packing
+  ws2812b_led_t leds[1];
+  leds[0].green = 0xaa;
+  leds[0].red = 0x55;
+  leds[0].blue = 0x0F;
 
-  // Test with double packing
+  // Test with single packing
+  ws2812b_handle_t h;
+  h.led_count = 1;
+  h.leds = leds;
+  h.config.packing = WS2812B_PACKING_SINGLE;
+  h.config.pulse_len_0 = WS2812B_PULSE_LEN_3b;
+  h.config.pulse_len_1 = WS2812B_PULSE_LEN_6b;
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_DISABLED;
+  h.config.prefix_len = 0;
+  h.config.suffix_len = 0;
+
+  h.config.spi_bit_order = WS2812B_LSB_FIRST;
+  uint8_t p1 = 0x3F;
+  uint8_t p0 = 0x07;
+  uint8_t buf_data_expected[24] = {/* g=0xaa */ p1, p0, p1, p0, p1, p0, p1, p0,
+                                   /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
+                                   /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+
+  h.config.spi_bit_order = WS2812B_MSB_FIRST;
+  p1 = 0xFC;
+  p0 = 0xE0;
+  uint8_t buf_data_expected_with_0[24] = {/* g=0xaa */ p1, p0, p1, p0, p1, p0, p1, p0,
+                                          /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
+                                          /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
+
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_with_0), error_msg);
+
+  // test with double packing
+  h.config.packing = WS2812B_PACKING_DOUBLE;
+  h.config.pulse_len_0 = WS2812B_PULSE_LEN_1b;
+  h.config.pulse_len_1 = WS2812B_PULSE_LEN_2b;
+
+  h.config.spi_bit_order = WS2812B_LSB_FIRST;
+  uint8_t p11 = 0x33;
+  uint8_t p10 = 0x13;
+  uint8_t p01 = 0x31;
+  uint8_t p00 = 0x11;
+  uint8_t buf_data_expected_double[12] = {/* g=0xaa */ p10, p10, p10, p10,
+                                          /* r=0x55 */ p01, p01, p01, p01,
+                                          /* b=0x0f */ p00, p00, p11, p11};
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), error_msg);
+
+  h.config.spi_bit_order = WS2812B_MSB_FIRST;
+  p11 = 0xCC;
+  p10 = 0xC8;
+  p01 = 0x8C;
+  p00 = 0x88;
+  uint8_t buf_data_expected_double_with_0[12] = {/* g=0xaa */ p10, p10, p10, p10,
+                                                 /* r=0x55 */ p01, p01, p01, p01,
+                                                 /* b=0x0f */ p00, p00, p11, p11};
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double_with_0), error_msg);
 }
 
 // ======= Main ===============================================================
