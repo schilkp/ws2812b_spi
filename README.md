@@ -19,7 +19,7 @@ that are capable of running fast enough.
 This driver will handle all data formatting. SPI transmission is platform-dependent and not provided,
 as it will have to be implemented on a per-device basis.
 
-This driver can be used in two ways: Buffered or unbuffered.
+This driver can be used in either buffered or unbuffered mode.
 
 ### Buffered:
 
@@ -37,7 +37,8 @@ If the RAM overhead can be tolerated, it is recommended.
 
 In this mode, one byte at a time can be requested from the driver to be transmitted.
 
-This will reduce RAM-overhead, but will usually increase interrupt load.
+This will reduce RAM-overhead, but will usually increase interrupt load and processing
+overhead.
 
 Furthermore the time between SPI bytes is critical and has to be consistent and very short. 
 Any interrupt-based implementation must run at a high enough priority to be handled instantly.
@@ -112,9 +113,9 @@ This is best demonstrated visually:
 
 ![Illustration of elongated puleses.](doc/first_bit_0.png)
 
-Both Signal 1 and 2 are create by sending 3 consecutive ones via the SPI port.
+Both signal 1 and 2 are create by sending three consecutive 1's via the SPI port.
 
-Due to the SPI setup and MCU used, there are significant gaps between byte transmission,
+Due to the SPI setup and MCU used in this example, there are significant gaps between byte transmission,
 and the first bit of the second byte is already present on the SDO line after the first byte
 is transmitted.
 
@@ -152,7 +153,7 @@ h.config.prefix_len = 1;
 h.config.suffix_len = 4;
 ```
 
-### SPI bit order.
+### SPI bit order
 
 The driver can format the data correctly for both MSB-first and LSB-first
 SPI transmission. Select the bit order with which the data will be transmitted.
@@ -166,7 +167,7 @@ h.config.spi_bit_order = WS2812B_MSB_FIRST; // Or WS2812B_LSB_FIRST
 
 The SPI port should be set to 8-bit transmission.
 
-The SPI mode or clock edge/phase usually does not impact transmission, but may
+The SPI mode or clock edge/polarity usually does not impact transmission, but may
 on some platforms.
 
 The SPI port should be run at approximately 6.5MHz in single packing mode and
@@ -177,6 +178,9 @@ Both LSB-first and MSB-first transmission are supported. See Driver Setup.
 
 It is usually beneficially to transmit four empty bytes (0x00) during startup to 
 ensure the data-line starts low. 
+
+Again: Different platforms may need different clock frequencies and clock edge/polarity settings.
+Use an oscilloscope to examine the output waveform and adjust accordingly.
 
 ## Driver Usage
 
@@ -268,7 +272,7 @@ int main(){
 - Add the array and the number of LEDs to the handle.
 - Transmit one byte at a time, by requesting each byte from the iterator.
     - `ws2812b_iter_next(...)` returns the next byte to be transmitted and advances the iterator. Once the iterator
-      finishes, this function will indefinitely return 0. It is therefore save to continously call the `ws2812b_iter_next(...)`
+      finishes, this function will indefinitely return 0. It is therefore save to continuously call the `ws2812b_iter_next(...)`
       function and transmit the result, even if the iterator finishes.
     - The iterator can at any time be restarted with `ws2812b_iter_restart(...)`.
     - `ws2812b_iter_is_finished(...)` can be used to check if there are no more bytes left.
