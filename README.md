@@ -197,7 +197,7 @@ Include [src/ws2812b.c](src/ws2812b.c) and [src/ws2812b.h](src/ws2812b.h).
 - Add the array and the number of LEDs to the handle.
 - Call `ws2812b_init(...)` to initialize the driver.
 - Create a `uint8_t` buffer of required length, which can be determined using the `WS2812B_REQUIRED_BUFFER_LEN(...)` macro.
-- Fill the buffer using `ws2812b_fill_buffer(..)`.
+- Fill the buffer using `ws2812b_fill_buffer(...)`.
 - Transmit the buffer via SPI.
 
 To update the LEDs, the led array cam be modified, the buffer re-filled, and re-transmitted.
@@ -378,7 +378,7 @@ The driver complies with/compiles under:
 
 The DMA buffer has to be allocated by the user. 
 
-To avoid the unnecessary usage of VLAs,a compile-time macro to calculate the required buffer 
+To avoid the unnecessary usage of VLAs, a compile-time macro to calculate the required buffer 
 length (`WS2812B_REQUIRED_BUFFER_LEN(...)`) is provided in addition to the function `ws2812b_required_buffer_len(...)`.
 
 
