@@ -18,7 +18,7 @@ DEPENDENCIES+=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.d))
 
 BUILDDIR=build
 
-.PHONY: all test clean format
+.PHONY: all test clean format 
 
 all: test
 
@@ -33,12 +33,18 @@ format:
 
 # Link tests:
 $(BUILDDIR)/%.out: $(BUILDDIR)/%.o $(OBJECTS)
-	$(CC) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
 # Compile sources and test sources
 $(BUILDDIR)/%.o: %.c makefile
 	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $(DEPFLAGS) $*.c -o $@
+
+# Re-generate compile_commands.json using either bear or compiledb
+GEN_COMP_COMMANDS_CMD=compiledb make
+#GEN_COMP_COMMANDS_CMD=bear -- make
+compile_commands: clean
+	$(GEN_COMP_COMMANDS_CMD)
 
 # Keep dependencies around, make them an explicit target:
 $(DEPENDENCIES):
@@ -49,6 +55,8 @@ $(DEPENDENCIES):
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),format)
+ifneq ($(MAKECMDGOALS),compile_commands)
 include $(DEPENDENCIES)
+endif
 endif
 endif
