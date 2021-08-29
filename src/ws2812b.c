@@ -22,28 +22,28 @@
 
 #ifdef WS2812B_DISABLE_ERROR_MSG
 
-#define WS2812B_INIT_ASSERT(_test_, _msg_)                                                         \
-  do {                                                                                             \
-    if (!(_test_)) {                                                                               \
-      return -1;                                                                                   \
-    }                                                                                              \
-  } while (0)
+#  define WS2812B_INIT_ASSERT(_test_, _msg_)                                                       \
+    do {                                                                                           \
+      if (!(_test_)) {                                                                             \
+        return -1;                                                                                 \
+      }                                                                                            \
+    } while (0)
 
 #else
 
-#include <stdio.h>
+#  include <stdio.h>
 
-#define WS2812B_ERROR_MSG_MAX_LEN 60
+#  define WS2812B_ERROR_MSG_MAX_LEN 60
 char error_msg[WS2812B_ERROR_MSG_MAX_LEN];
 char *ws2812b_error_msg;
 
-#define WS2812B_INIT_ASSERT(_test_, _msg_)                                                         \
-  do {                                                                                             \
-    if (!(_test_)) {                                                                               \
-      snprintf(error_msg, WS2812B_ERROR_MSG_MAX_LEN, "%s", _msg_);                                 \
-      return -1;                                                                                   \
-    }                                                                                              \
-  } while (0)
+#  define WS2812B_INIT_ASSERT(_test_, _msg_)                                                       \
+    do {                                                                                           \
+      if (!(_test_)) {                                                                             \
+        snprintf(error_msg, WS2812B_ERROR_MSG_MAX_LEN, "%s", _msg_);                               \
+        return -1;                                                                                 \
+      }                                                                                            \
+    } while (0)
 
 #endif /* WS2812B_ERROR_MSG_MAX_LEN */
 
