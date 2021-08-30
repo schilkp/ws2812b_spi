@@ -8,9 +8,12 @@
 #include "ws2812b.h"
 #include <stdint.h>
 
+// ======== Private Macros =========================================================================
+
 #define WS2812B_BYTE_REVERSE(_x_)                                                                  \
   (((_x_ & 0x80) >> 7) | ((_x_ & 0x40) >> 5) | ((_x_ & 0x20) >> 3) | ((_x_ & 0x10) >> 1) |         \
    ((_x_ & 0x08) << 1) | ((_x_ & 0x04) << 3) | ((_x_ & 0x02) << 5) | ((_x_ & 0x01) << 7))
+
 #define WS2812B_NIBBLE_REVERSE(_x_)                                                                \
   (((_x_ & 0x8) >> 3) | ((_x_ & 0x4) >> 1) | ((_x_ & 0x2) << 1) | ((_x_ & 0x1) << 3))
 
@@ -47,10 +50,13 @@ char *ws2812b_error_msg;
 
 #endif /* WS2812B_ERROR_MSG_MAX_LEN */
 
-// Private prototypes
+// ======== Private Prototypes =====================================================================
+
 static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer);
 static uint8_t construct_single_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value);
 static uint8_t construct_double_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value);
+
+// ======== Public Functions =======================================================================
 
 int ws2812b_init(ws2812b_handle_t *ws) {
 
@@ -212,7 +218,8 @@ uint8_t ws2812b_iter_next(ws2812b_handle_t *ws) {
   return 0x00;
 }
 
-// private functions
+// ======== Private Functions ======================================================================
+
 static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer) {
   if (ws->config.packing == WS2812B_PACKING_DOUBLE) {
 

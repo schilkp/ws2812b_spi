@@ -6,7 +6,7 @@
 
 #define UNUSED(_x_) (void)(_x_)
 
-// ======= Utils ==============================================================
+// ======== Utils ==================================================================================
 
 void util_generate_iter_buf(ws2812b_handle_t *h, uint8_t *buf) {
 
@@ -98,7 +98,7 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   return true;
 }
 
-// ======= Tests ==============================================================
+// ======== Tests ==================================================================================
 
 void test_no_vla(void) {
   // Ensure the REQUIRED_BUFFER_LEN macro allows the creation
@@ -579,7 +579,7 @@ void test_spi_bit_order(void) {
   TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double_with_0), error_msg);
 }
 
-// ======= Main ===============================================================
+// ======== Main ===================================================================================
 
 void setUp(void) {}
 void tearDown(void) {}
