@@ -342,6 +342,22 @@ void test_iterator_end_behavior(void) {
   TEST_ASSERT_FALSE(ws2812b_iter_is_finished(&h));
 }
 
+void test_no_led(void) {
+  ws2812b_handle_t h;
+  h.led_count = 0;
+  h.leds = 0;
+  h.config.packing = WS2812B_PACKING_SINGLE;
+  h.config.pulse_len_0 = WS2812B_PULSE_LEN_2b;
+  h.config.pulse_len_1 = WS2812B_PULSE_LEN_6b;
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_ENABLED;
+  h.config.spi_bit_order = WS2812B_LSB_FIRST;
+  h.config.prefix_len = 10;
+  h.config.suffix_len = 0;
+
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, 0), test_error_msg);
+  printf("Run!");
+}
+
 void test_single_led(void) {
   ws2812b_led_t leds[1];
   leds[0].green = 0xaa;
@@ -622,6 +638,7 @@ int main(void) {
   RUN_TEST(test_invalid_config_detected);
   RUN_TEST(test_init_error_msg);
   RUN_TEST(test_iterator_end_behavior);
+  RUN_TEST(test_no_led);
   RUN_TEST(test_single_led);
   RUN_TEST(test_multiple_leds);
   RUN_TEST(test_pulse_length);
