@@ -355,7 +355,6 @@ void test_no_led(void) {
   h.config.suffix_len = 0;
 
   TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, 0), test_error_msg);
-  printf("Run!");
 }
 
 void test_single_led(void) {
