@@ -24,13 +24,13 @@ void util_generate_iter_buf(ws2812b_handle_t *h, uint8_t *buf) {
   }
 }
 
-#define ERROR_MSG_LEN 200
-char error_msg[ERROR_MSG_LEN];
+#define TEST_ERROR_MSG_LEN 200
+char test_error_msg[TEST_ERROR_MSG_LEN];
 
 bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
 
   if (ws2812b_init(h)) {
-    snprintf(error_msg, ERROR_MSG_LEN, "Init function failed!");
+    snprintf(test_error_msg, TEST_ERROR_MSG_LEN, "Init function failed!");
     return false;
   }
 
@@ -46,7 +46,7 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   // Ensure prefix is 0
   for (uint32_t i = 0; i < prefix_len; i++) {
     if (buf[i] != 0) {
-      snprintf(error_msg, ERROR_MSG_LEN, "Prefix is not 0 at buffer index 0x%x!", i);
+      snprintf(test_error_msg, TEST_ERROR_MSG_LEN, "Prefix is not 0 at buffer index 0x%x!", i);
       free(buf);
       return false;
     }
@@ -55,8 +55,9 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   // Ensure data is as exptected
   for (uint32_t i = 0; i < data_len; i++) {
     if (buf[i + prefix_len] != buf_data_expected[i]) {
-      snprintf(error_msg, ERROR_MSG_LEN, "Buffer is wrong at %i, expected 0x%x, got 0x%x!",
-               i + prefix_len, buf_data_expected[i], buf[i + prefix_len]);
+      snprintf(test_error_msg, TEST_ERROR_MSG_LEN,
+               "Buffer is wrong at %i, expected 0x%x, got 0x%x!", i + prefix_len,
+               buf_data_expected[i], buf[i + prefix_len]);
       free(buf);
       return false;
     }
@@ -65,7 +66,7 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   // Ensure suffix is 0
   for (uint32_t i = prefix_len + data_len; i < prefix_len + data_len + suffix_len; i++) {
     if (buf[i] != 0) {
-      snprintf(error_msg, ERROR_MSG_LEN, "Suffix is not 0 at buffer index 0x%x!", i);
+      snprintf(test_error_msg, TEST_ERROR_MSG_LEN, "Suffix is not 0 at buffer index 0x%x!", i);
       free(buf);
       return false;
     }
@@ -75,7 +76,7 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   uint8_t *iter_buf = malloc(sizeof(uint8_t) * buffer_len);
   util_generate_iter_buf(h, iter_buf);
   if (!ws2812b_iter_is_finished(h)) {
-    snprintf(error_msg, ERROR_MSG_LEN, "Iterator did not report finished!");
+    snprintf(test_error_msg, TEST_ERROR_MSG_LEN, "Iterator did not report finished!");
     free(iter_buf);
     free(buf);
     return false;
@@ -84,7 +85,7 @@ bool util_test_driver_output(ws2812b_handle_t *h, uint8_t *buf_data_expected) {
   // compare iterator buffer to normal buffer:
   for (uint32_t i = 0; i < buffer_len; i++) {
     if (buf[i] != iter_buf[i]) {
-      snprintf(error_msg, ERROR_MSG_LEN,
+      snprintf(test_error_msg, TEST_ERROR_MSG_LEN,
                "Iterator does not match buffer at %i, expected 0x%x, got 0x%x!", i, buf[i],
                iter_buf[i]);
       free(iter_buf);
@@ -223,6 +224,29 @@ void test_invalid_config_detected(void) {
   }
 }
 
+void test_init_error_msg(void) {
+  // A base, valid configuration
+  ws2812b_handle_t h;
+  h.led_count = 0;
+  h.config.packing = WS2812B_PACKING_SINGLE;
+  h.config.pulse_len_0 = WS2812B_PULSE_LEN_1b;
+  h.config.pulse_len_1 = WS2812B_PULSE_LEN_3b;
+  h.config.first_bit_0 = WS2812B_FIRST_BIT_0_ENABLED;
+  h.config.spi_bit_order = WS2812B_MSB_FIRST;
+  h.config.prefix_len = 1;
+  h.config.suffix_len = 4;
+
+  // Set packing to something invalid:
+  h.config.packing = -1999;
+
+  // Init
+  ws2812b_init(&h);
+
+  // Check error message was generated
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("ws2812b: config.packing is invalid!", ws2812b_error_msg,
+                                   "Did not generate error message.");
+}
+
 #define ITERATOR_LED_COUNT 10
 void test_iterator_end_behavior(void) {
   // Ensure that the iterator takes the expected amount of steps,
@@ -337,7 +361,7 @@ void test_single_led(void) {
                                    /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
                                    /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
 
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), test_error_msg);
 
   // test with double packing
   h.config.packing = WS2812B_PACKING_DOUBLE;
@@ -352,7 +376,7 @@ void test_single_led(void) {
                                           /* r=0x55 */ p01, p01, p01, p01,
                                           /* b=0x0f */ p00, p00, p11, p11};
 
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), test_error_msg);
 }
 
 void test_multiple_leds(void) {
@@ -396,7 +420,7 @@ void test_multiple_leds(void) {
       /* [2].r=0xf0 */ p1, p1, p1, p1, p0, p0, p0, p0,
       /* [2].b=0x00 */ p0, p0, p0, p0, p0, p0, p0, p0};
 
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), test_error_msg);
 
   // test with double packing
   h.config.packing = WS2812B_PACKING_DOUBLE;
@@ -419,7 +443,7 @@ void test_multiple_leds(void) {
                                               /* [2].r=0xf0 */ p11, p11, p00, p00,
                                               /* [2].b=0x00 */ p00, p00, p00, p00};
 
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), test_error_msg);
 }
 
 void test_pulse_length() {
@@ -443,7 +467,7 @@ void test_pulse_length() {
 
   // Test WS2812B_PULSE_LEN_1b
   memset(buf_data_expected, 0x1, 24);
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), test_error_msg);
 
   // Test WS2812B_PULSE_LEN_2b - WS2812B_PULSE_LEN_7b
   leds[0].green = 0xff;
@@ -455,7 +479,7 @@ void test_pulse_length() {
   for (uint32_t len = 0; len < 6; len++) {
     h.config.pulse_len_1 = lengths[len];
     memset(buf_data_expected, lengths[len], 24);
-    TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+    TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), test_error_msg);
   }
 }
 
@@ -482,7 +506,7 @@ void test_first_bit_0() {
   uint8_t buf_data_expected[24] = {/* g=0xaa */ p1, p0, p1, p0, p1, p0, p1, p0,
                                    /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
                                    /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), test_error_msg);
 
   h.config.first_bit_0 = WS2812B_FIRST_BIT_0_ENABLED;
   p1 = 0x7E;
@@ -491,7 +515,7 @@ void test_first_bit_0() {
                                           /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
                                           /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
 
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_with_0), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_with_0), test_error_msg);
 
   // test with double packing
   h.config.packing = WS2812B_PACKING_DOUBLE;
@@ -506,7 +530,7 @@ void test_first_bit_0() {
   uint8_t buf_data_expected_double[12] = {/* g=0xaa */ p10, p10, p10, p10,
                                           /* r=0x55 */ p01, p01, p01, p01,
                                           /* b=0x0f */ p00, p00, p11, p11};
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), test_error_msg);
 
   h.config.first_bit_0 = WS2812B_FIRST_BIT_0_ENABLED;
   p11 = 0x66;
@@ -516,7 +540,8 @@ void test_first_bit_0() {
   uint8_t buf_data_expected_double_with_0[12] = {/* g=0xaa */ p10, p10, p10, p10,
                                                  /* r=0x55 */ p01, p01, p01, p01,
                                                  /* b=0x0f */ p00, p00, p11, p11};
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double_with_0), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double_with_0),
+                           test_error_msg);
 }
 
 void test_spi_bit_order(void) {
@@ -542,7 +567,7 @@ void test_spi_bit_order(void) {
   uint8_t buf_data_expected[24] = {/* g=0xaa */ p1, p0, p1, p0, p1, p0, p1, p0,
                                    /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
                                    /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected), test_error_msg);
 
   h.config.spi_bit_order = WS2812B_MSB_FIRST;
   p1 = 0xFC;
@@ -551,7 +576,7 @@ void test_spi_bit_order(void) {
                                           /* r=0x55 */ p0, p1, p0, p1, p0, p1, p0, p1,
                                           /* b=0x0f */ p0, p0, p0, p0, p1, p1, p1, p1};
 
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_with_0), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_with_0), test_error_msg);
 
   // test with double packing
   h.config.packing = WS2812B_PACKING_DOUBLE;
@@ -566,7 +591,7 @@ void test_spi_bit_order(void) {
   uint8_t buf_data_expected_double[12] = {/* g=0xaa */ p10, p10, p10, p10,
                                           /* r=0x55 */ p01, p01, p01, p01,
                                           /* b=0x0f */ p00, p00, p11, p11};
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double), test_error_msg);
 
   h.config.spi_bit_order = WS2812B_MSB_FIRST;
   p11 = 0xCC;
@@ -576,7 +601,8 @@ void test_spi_bit_order(void) {
   uint8_t buf_data_expected_double_with_0[12] = {/* g=0xaa */ p10, p10, p10, p10,
                                                  /* r=0x55 */ p01, p01, p01, p01,
                                                  /* b=0x0f */ p00, p00, p11, p11};
-  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double_with_0), error_msg);
+  TEST_ASSERT_TRUE_MESSAGE(util_test_driver_output(&h, buf_data_expected_double_with_0),
+                           test_error_msg);
 }
 
 // ======== Main ===================================================================================
@@ -589,6 +615,7 @@ int main(void) {
   RUN_TEST(test_no_vla);
   RUN_TEST(test_buffer_len);
   RUN_TEST(test_invalid_config_detected);
+  RUN_TEST(test_init_error_msg);
   RUN_TEST(test_iterator_end_behavior);
   RUN_TEST(test_single_led);
   RUN_TEST(test_multiple_leds);
