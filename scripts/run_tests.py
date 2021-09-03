@@ -118,8 +118,11 @@ def main(test_suites):
     print()
 
     print("Passed (%i): " % passes)
-    for test in tests_passed:
-        print(test)
+    if passes <= 50:
+        for test in tests_passed:
+            print(test)
+    else:
+        print('...')
 
     print("===================================")
     if crashes == 0 and fails == 0:
