@@ -236,10 +236,15 @@ void test_init_error_msg(void) {
   h.config.prefix_len = 1;
   h.config.suffix_len = 4;
 
-  // Set packing to something invalid:
-  h.config.packing = -1999;
-
   // Init
+  ws2812b_init(&h);
+
+  // Check that error message is empty
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", ws2812b_error_msg,
+                                   "Non-empty error message for valid config.");
+
+  // Set packing to something invalid and init.
+  h.config.packing = -1999;
   ws2812b_init(&h);
 
   // Check error message was generated

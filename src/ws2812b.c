@@ -23,35 +23,27 @@
    (_x_) == WS2812B_PULSE_LEN_6b || (_x_) == WS2812B_PULSE_LEN_5b ||                               \
    (_x_) == WS2812B_PULSE_LEN_7b)
 
-#ifdef WS2812B_DISABLE_ERROR_MSG
-
-#  define WS2812B_INIT_ASSERT(_test_, _msg_)                                                       \
-    do {                                                                                           \
-      if (!(_test_)) {                                                                             \
-        return -1;                                                                                 \
-      }                                                                                            \
-    } while (0)
-
-#else
-
-#  include <stdio.h>
-
-#  define WS2812B_ERROR_MSG_MAX_LEN 60
-char error_msg[WS2812B_ERROR_MSG_MAX_LEN];
 char *ws2812b_error_msg;
 
-#  define WS2812B_INIT_ASSERT(_test_, _msg_)                                                       \
-    do {                                                                                           \
-      if (!(_test_)) {                                                                             \
-        snprintf(error_msg, WS2812B_ERROR_MSG_MAX_LEN, "%s", _msg_);                               \
-        return -1;                                                                                 \
-      }                                                                                            \
-    } while (0)
+#ifndef WS2812B_DISABLE_ERROR_MSG
+
+// Set aside error message buffer unless disabled
+#define WS2812B_ERROR_MSG_MAX_LEN 60
+char error_msg_buf[WS2812B_ERROR_MSG_MAX_LEN];
 
 #endif /* WS2812B_ERROR_MSG_MAX_LEN */
 
+#define WS2812B_INIT_ASSERT(_assertion_, _error_msg_)                                              \
+  do {                                                                                             \
+    if (!(_assertion_)) {                                                                          \
+      set_init_error_msg(_error_msg_);                                                             \
+      return -1;                                                                                   \
+    }                                                                                              \
+  } while (0)
+
 // ======== Private Prototypes =====================================================================
 
+static void set_init_error_msg(const char *error_msg);
 static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer);
 static uint8_t construct_single_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value);
 static uint8_t construct_double_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint8_t value);
@@ -60,8 +52,12 @@ static uint8_t construct_double_pulse(ws2812b_handle_t *ws, uint_fast8_t b, uint
 
 int ws2812b_init(ws2812b_handle_t *ws) {
 
+  // Point ws2812b_error_msg to error buffer unless error message buffer is disabled.
 #ifndef WS2812B_DISABLE_ERROR_MSG
-  ws2812b_error_msg = error_msg;
+  ws2812b_error_msg = error_msg_buf;
+  error_msg_buf[0] = '\0';
+#else  /* WS2812B_DISABLE_ERROR_MSG */
+  ws2812b_error_msg = 0;
 #endif /* WS2812B_DISABLE_ERROR_MSG */
 
   // Assert packing is valid
@@ -219,6 +215,19 @@ uint8_t ws2812b_iter_next(ws2812b_handle_t *ws) {
 }
 
 // ======== Private Functions ======================================================================
+
+static void set_init_error_msg(const char *error_msg) {
+  int i = 0;
+
+  // Copy content
+  while (i < WS2812B_ERROR_MSG_MAX_LEN - 1 && error_msg[i] != '\0') {
+    error_msg_buf[i] = error_msg[i];
+    i++;
+  }
+
+  // Terminate string
+  error_msg_buf[i] = '\0';
+}
 
 static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer) {
   if (ws->config.packing == WS2812B_PACKING_DOUBLE) {
