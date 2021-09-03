@@ -3,9 +3,10 @@ from os.path import basename, splitext
 import subprocess
 
 class Color:
-    OK =  '\33[92m'
-    WARN = '\33[93m'
-    ERR = '\33[91m'
+    OK =  '\033[92m'
+    WARN = '\033[93m'
+    ERR = '\033[91m'
+    INFO = '\033[96m'
     END = '\33[0m'
 
 def main(test_suites):
@@ -52,6 +53,10 @@ def main(test_suites):
                     tests_failed.append(line)
                 elif ':IGNORE' in line:
                     tests_ignored.append(line)
+                elif ':INFO' in line:
+                    print(Color.INFO, end='')
+                    print(line)
+                    print(Color.END, end='')
                 else:
                     print(Color.WARN, end='')
                     print("Error parsing test output '%s', ignoring line. Did the test crash?"
