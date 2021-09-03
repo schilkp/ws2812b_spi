@@ -1,8 +1,12 @@
 import sys
-import os
 from os.path import basename, splitext
 import subprocess
 
+class Color:
+    OK =  '\33[92m'
+    WARN = '\33[93m'
+    ERR = '\33[91m'
+    END = '\33[0m'
 
 def main(test_suites):
     tests_crashed = []
@@ -25,8 +29,10 @@ def main(test_suites):
 
         if '-----------------------' not in suite_output:
             # Test suite crashed
+            print(Color.ERR, end='')
             print("Test suite %s crashed, test results not reported!" %
                   test_suite_name)
+            print(Color.END, end='')
             tests_crashed.append(test_suite_name)
         else:
             # Test suite completed
@@ -47,8 +53,10 @@ def main(test_suites):
                 elif ':IGNORE' in line:
                     tests_ignored.append(line)
                 else:
+                    print(Color.WARN, end='')
                     print("Error parsing test output '%s', ignoring line. Did the test crash?"
                           % line)
+                    print(Color.END, end='')
 
     # Print summary:
     crashes = len(tests_crashed)
@@ -60,28 +68,48 @@ def main(test_suites):
     print()
     print()
     print("============= Summary =============")
+    
     if crashes != 0:
+        print(Color.ERR, end='')
         print("Warning! %i test suite(s) crashed. Not all tests were performed!" % crashes)
+        print(Color.END, end='')
+    
     print("Ran %i tests." % tests)
-    print("Failed: %i  Passed: %i  Ignore: %i" % (fails, passes, ignores))
-    print("Success rate (without ignored tests): %2.2f%%" %
-          (float(passes) / (tests - ignores) * 100))
+    
+    print(Color.ERR, end='')
+    print("Failed: %i"% fails)
+    print(Color.END + Color.OK, end='')
+    print("Passed: %i"% passes)
+    print(Color.END + Color.WARN, end='')
+    print("Ignore: %i"% ignores)
+    print(Color.END, end='')
+    
+    if (tests - ignores) != 0:
+        print("Success rate (without ignored tests): %2.2f%%" %
+              (float(passes) / (tests - ignores) * 100))
+
     print()
     print("============ Breakdown ============")
     if crashes != 0:
         print("Crashed test suites (%i):" % crashes)
+        print(Color.ERR, end='')
         for suite in tests_crashed:
             print(suite)
+        print(Color.END, end='')
         print()
 
     print("Failed (%i): " % fails)
     for test in tests_failed:
+        print(Color.ERR, end='')
         print(test)
+        print(Color.END, end='')
     print()
 
     print("Ignored (%i): " % ignores)
     for test in tests_ignored:
+        print(Color.WARN, end='')
         print(test)
+        print(Color.END, end='')
     print()
 
     print("Passed (%i): " % passes)
@@ -90,12 +118,16 @@ def main(test_suites):
 
     print("===================================")
     if crashes == 0 and fails == 0:
+        print(Color.OK, end='')
         print("All good! :)")
+        print(Color.END)
         print()
         print()
         sys.exit(0)
     else:
+        print(Color.WARN, end='')
         print("There is some work left to do...")
+        print(Color.OK, end='')
         print()
         print()
         sys.exit(1)
