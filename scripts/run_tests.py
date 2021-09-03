@@ -135,7 +135,7 @@ def main(test_suites):
     else:
         print(Color.WARN, end='')
         print("There is some work left to do...")
-        print(Color.OK, end='')
+        print(Color.END, end='')
         print()
         print()
         sys.exit(1)
