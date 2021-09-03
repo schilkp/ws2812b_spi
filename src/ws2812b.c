@@ -217,6 +217,8 @@ uint8_t ws2812b_iter_next(ws2812b_handle_t *ws) {
 // ======== Private Functions ======================================================================
 
 static void set_init_error_msg(const char *error_msg) {
+#ifndef WS2812B_DISABLE_ERROR_MSG
+  // If error mesages are enabled, copy over the error message
   int i = 0;
 
   // Copy content
@@ -227,6 +229,10 @@ static void set_init_error_msg(const char *error_msg) {
 
   // Terminate string
   error_msg_buf[i] = '\0';
+#else
+  // Otherwise avoid the unused-args warning
+  (void)(error_msg);
+#endif /* WS2812B_DISABLE_ERROR_MSG */
 }
 
 static void add_byte(ws2812b_handle_t *ws, uint8_t value, uint8_t **buffer) {
