@@ -200,7 +200,7 @@ Include [src/ws2812b.c](src/ws2812b.c) and [src/ws2812b.h](src/ws2812b.h).
 - Fill the buffer using `ws2812b_fill_buffer(...)`.
 - Transmit the buffer via SPI.
 
-To update the LEDs, the led array cam be modified, the buffer re-filled, and re-transmitted.
+To update the LEDs, the led array can be modified, the buffer re-filled, and re-transmitted.
 
 Important: Make sure to respect the minimum time between packages before sending another package!
 This varies between LED models. Check the datasheet.
