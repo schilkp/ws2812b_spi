@@ -1,0 +1,17 @@
+{signal: [
+  {},
+  {name: 'Data', wave: 'x.=.......=.......x.', data:['0','1']},
+  {},
+  {name: 'PWM Signal', 
+   wave: '0.1.0.....1.....0...',
+   node: '..a.b.....c.....d...',
+   phase: 0},
+  {},
+  ['SPI Port',
+  {name: 'CLK', wave: '0.P.......P.......l.'},
+  {name: 'SDO', wave: '0.h.l.....h.....l...'},
+  ]
+], edge:[
+  'a+b 400±150ns',
+  'c+d 800±150 ns',
+]}

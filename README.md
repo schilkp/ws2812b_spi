@@ -2,6 +2,8 @@
 
 Philipp Schilk 2021
 
+![Timing diagram showing driver output.](doc/header.svg)
+
 # Usage
 
 Allows the usage of a standard SPI peripheral to generate the PWM/One-wire signal required
