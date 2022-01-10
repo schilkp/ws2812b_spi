@@ -18,12 +18,14 @@ DEPENDENCIES+=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.d))
 
 BUILDDIR=build
 
-.PHONY: all test clean format 
+.PHONY: all run_tests build_tests clean format
 
-all: test
+all: run_tests
 
-test: $(TESTS)
+run_tests: build_tests
 	-python3 scripts/run_tests.py $(TESTS)
+
+build_tests: $(TESTS)
 
 clean:
 	rm -rf $(BUILDDIR)

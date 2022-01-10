@@ -2,7 +2,7 @@
   "configurations": {
     "Run Tests": {
       "adapter": "vscode-cpptools",
-      "filetypes": [ "cpp", "c", "objc", "rust" ],
+      "filetypes": ["c", "cpp"],
       "configuration": {
         "request": "launch",
         "program": "build/test/test_ws2812b.out",

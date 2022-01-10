@@ -14,6 +14,9 @@ def main(test_suites):
     tests_passed = []
     tests_failed = []
     tests_ignored = []
+    
+    # Empty line to clean up makefile output a bit.
+    print() 
 
     # Print message and exit if there where no tests passed:
     if len(test_suites) == 0:
