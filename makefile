@@ -9,7 +9,7 @@ LDFLAGS=
 CFLAGS=-Wall -Wextra -Wpedantic -Werror=vla -fsanitize=address -g -Isrc -Itest/Unity
 DEPFLAGS=-MMD -MP -MF $(BUILDDIR)/$*.d
 
-SOURCES=src/ws2812b.c test/Unity/unity.c 
+SOURCES=src/ws2812b.c test/Unity/unity.c
 TEST_SOURCES=$(wildcard test/*.c)
 TESTS=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.out))
 OBJECTS=$(addprefix $(BUILDDIR)/,$(SOURCES:.c=.o))

@@ -2,21 +2,23 @@ import sys
 from os.path import basename, splitext
 import subprocess
 
+
 class Color:
-    OK =  '\033[92m'
+    OK = '\033[92m'
     WARN = '\033[93m'
     ERR = '\033[91m'
     INFO = '\033[96m'
     END = '\33[0m'
+
 
 def main(test_suites):
     tests_crashed = []
     tests_passed = []
     tests_failed = []
     tests_ignored = []
-    
+
     # Empty line to clean up makefile output a bit.
-    print() 
+    print()
 
     # Print message and exit if there where no tests passed:
     if len(test_suites) == 0:
@@ -30,6 +32,8 @@ def main(test_suites):
         test_output = subprocess.run(test_suite, capture_output=True)
 
         suite_output = test_output.stdout.decode()
+
+        suite_fail_count = 0
 
         if '-----------------------' not in suite_output:
             # Test suite crashed
@@ -54,6 +58,7 @@ def main(test_suites):
                     tests_passed.append(line)
                 elif ':FAIL' in line:
                     tests_failed.append(line)
+                    suite_fail_count += 1
                 elif ':IGNORE' in line:
                     tests_ignored.append(line)
                 elif ':INFO' in line:
@@ -66,6 +71,17 @@ def main(test_suites):
                           % line)
                     print(Color.END, end='')
 
+        # Unity test suites return the number of failed tests.
+        # Make sure that matches what we parsed above:
+        failed_tests_unity_report = test_output.returncode
+
+        if suite_fail_count != failed_tests_unity_report:
+            print(Color.WARN, end='')
+            print("Unity report %i failed tests, but %i where tracked by the test output." % (
+                failed_tests_unity_report, suite_fail_count))
+            print("Verify test suite output manually!")
+            print(Color.END, end='')
+
     # Print summary:
     crashes = len(tests_crashed)
     passes = len(tests_passed)
@@ -76,22 +92,22 @@ def main(test_suites):
     print()
     print()
     print("============= Summary =============")
-    
+
     if crashes != 0:
         print(Color.ERR, end='')
         print("Warning! %i test suite(s) crashed. Not all tests were performed!" % crashes)
         print(Color.END, end='')
-    
+
     print("Ran %i tests." % tests)
-    
+
     print(Color.ERR, end='')
-    print("Failed: %i"% fails)
+    print("Failed: %i" % fails)
     print(Color.END + Color.OK, end='')
-    print("Passed: %i"% passes)
+    print("Passed: %i" % passes)
     print(Color.END + Color.WARN, end='')
-    print("Ignore: %i"% ignores)
+    print("Ignore: %i" % ignores)
     print(Color.END, end='')
-    
+
     if (tests - ignores) != 0:
         print("Success rate (without ignored tests): %2.2f%%" %
               (float(passes) / (tests - ignores) * 100))
