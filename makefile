@@ -13,6 +13,8 @@ SOURCES=src/ws2812b.c test/Unity/unity.c
 TEST_SOURCES=$(wildcard test/*.c)
 TESTS=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.out))
 OBJECTS=$(addprefix $(BUILDDIR)/,$(SOURCES:.c=.o))
+PREPROC_EXPANDED_SRCS=$(addprefix $(BUILDDIR)/preproc/,$(SOURCES))
+PREPROC_EXPANDED_TEST_SRCS=$(addprefix $(BUILDDIR)/preproc/,$(TEST_SOURCES))
 DEPENDENCIES=$(addprefix $(BUILDDIR)/,$(SOURCES:.c=.d))
 DEPENDENCIES+=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.d))
 
@@ -42,7 +44,15 @@ $(BUILDDIR)/%.o: %.c makefile
 	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $(DEPFLAGS) $*.c -o $@
 
+# Generate C files with all preproc expansion:
+.PHONY: preproc_expanded
+preproc_expanded: $(PREPROC_EXPANDED_SRCS) $(PREPROC_EXPANDED_TEST_SRCS)
+$(BUILDDIR)/preproc/%.c: %.c makefile
+	@mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) -E -C $*.c -o $@
+
 # Re-generate compile_commands.json using either bear or compiledb
+.PHONY: compile_commands
 GEN_COMP_COMMANDS_CMD=compiledb make
 #GEN_COMP_COMMANDS_CMD=bear -- make
 compile_commands: clean
