@@ -20,6 +20,8 @@ DEPENDENCIES+=$(addprefix $(BUILDDIR)/,$(TEST_SOURCES:.c=.d))
 
 BUILDDIR=build
 
+SILENT?=
+
 .PHONY: all run_tests build_tests clean format
 
 all: run_tests
@@ -37,19 +39,19 @@ format:
 
 # Link tests:
 $(BUILDDIR)/%.out: $(BUILDDIR)/%.o $(OBJECTS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(SILENT) $(CC) $(CFLAGS) $^ -o $@
 
 # Compile sources and test sources
 $(BUILDDIR)/%.o: %.c makefile
 	@mkdir -p $(dir $@)
-	$(CC) -c $(CFLAGS) $(DEPFLAGS) $*.c -o $@
+	$(SILENT) $(CC) -c $(CFLAGS) $(DEPFLAGS) $*.c -o $@
 
 # Generate C files with all preproc expansion:
 .PHONY: preproc_expanded
 preproc_expanded: $(PREPROC_EXPANDED_SRCS) $(PREPROC_EXPANDED_TEST_SRCS)
 $(BUILDDIR)/preproc/%.c: %.c makefile
 	@mkdir -p $(dir $@)
-	$(CC) -c $(CFLAGS) -E -C $*.c -o $@
+	$(SILENT) $(CC) -c $(CFLAGS) -E -C $*.c -o $@
 
 # Re-generate compile_commands.json using either bear or compiledb
 .PHONY: compile_commands
