@@ -60,6 +60,10 @@ GEN_COMP_COMMANDS_CMD=compiledb make
 compile_commands: clean
 	$(GEN_COMP_COMMANDS_CMD)
 
+.PHONY: test_watch
+test_watch:
+	watch -c -n 1 make SILENT=@
+
 # Keep dependencies around, make them an explicit target:
 $(DEPENDENCIES):
 
