@@ -42,7 +42,7 @@ In this mode, one byte at a time can be requested from the driver to be transmit
 This will reduce RAM-overhead, but will usually increase interrupt load and processing
 overhead.
 
-Furthermore the time between SPI bytes is critical and has to be consistent and very short. 
+Furthermore, the time between SPI bytes is critical and has to be consistent and very short. 
 Any interrupt-based implementation must run at a high enough priority to be handled instantly.
 
 ## Driver Configuration & Settings
@@ -69,7 +69,7 @@ This is illustrated in the diagram below.
 
 While double packing will need less RAM space in buffered mode and allow the SPI port 
 to be run at a lower frequency, it leaves less timing margin than single packing mode. 
-Therefore it is generally more likely for single packing to work on a give platform.
+Therefore, it is generally more likely for single packing to work on a give platform.
 
 ```c
 ws2812b_handle_t h;
@@ -81,7 +81,7 @@ h.config.packing = WS2812B_PACKING_SINGLE; // or WS2812B_PACKING_DOUBLE
 The short and long pulses corresponding to one and zero respectively have to be 
 of the correct length to be detected correctly by the LED.
 
-Because the exact SPI clock speed may vary and the exact waveform may depend
+Because the exact SPI clock speed may vary, and the exact waveform may depend
 on some other hardware-specific property, the number of 1's send to create a long 
 pulse and short pulse can be adjusted
 
@@ -113,9 +113,9 @@ remains low in between byte transmission.
 
 This is best demonstrated visually:
 
-![Illustration of elongated puleses.](doc/first_bit_0.png)
+![Illustration of elongated pulses.](doc/first_bit_0.png)
 
-Both signal 1 and 2 are create by sending three consecutive 1's via the SPI port.
+Both signal 1 and 2 are created by sending three consecutive 1's via the SPI port.
 
 Due to the SPI setup and MCU used in this example, there are significant gaps between byte transmission,
 and the first bit of the second byte is already present on the SDO line after the first byte
@@ -202,7 +202,7 @@ Include [src/ws2812b.c](src/ws2812b.c) and [src/ws2812b.h](src/ws2812b.h).
 - Fill the buffer using `ws2812b_fill_buffer(...)`.
 - Transmit the buffer via SPI.
 
-To update the LEDs, the led array can be modified, the buffer re-filled, and re-transmitted.
+To update the LEDs, the LED array can be modified, the buffer re-filled, and re-transmitted.
 
 Important: Make sure to respect the minimum time between packages before sending another package!
 This varies between LED models. Check the datasheet.
@@ -274,7 +274,7 @@ int main(){
 - Add the array and the number of LEDs to the handle.
 - Transmit one byte at a time, by requesting each byte from the iterator.
     - `ws2812b_iter_next(...)` returns the next byte to be transmitted and advances the iterator. Once the iterator
-      finishes, this function will indefinitely return 0. It is therefore save to continuously call the `ws2812b_iter_next(...)`
+      finishes, this function will indefinitely return 0. It is therefore safe to continuously call the `ws2812b_iter_next(...)`
       function and transmit the result, even if the iterator finishes.
     - The iterator can at any time be restarted with `ws2812b_iter_restart(...)`.
     - `ws2812b_iter_is_finished(...)` can be used to check if there are no more bytes left.
@@ -393,7 +393,7 @@ Development requirements:
  - clang-format
  - Python 3.5+
 
-Currently only tested under Linux.
+Currently, only tested under Linux.
 
 ### Compilation
 
@@ -422,5 +422,3 @@ To format all code run:
 ```bash
 make format
 ```
-A git pre-commit hook to verify formatting is provided. See [scripts/pre-commit](sripts/pre-commit) and [scripts/install_hooks.sh](scripts/install_hooks.sh).
-
