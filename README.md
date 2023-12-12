@@ -61,7 +61,7 @@ This driver creates the different-length pulses by sending different numbers of 
 0's via the SPI port.
 
 A single byte sent via the SPI port can be used to generate one (single packing) or two (double
-packing) single-bit pulses for the LEDs.
+packing) bit-pulses.
 
 This is illustrated in the diagram below.
 
@@ -69,7 +69,7 @@ This is illustrated in the diagram below.
 
 While double packing will need less RAM space in buffered mode and allow the SPI port 
 to be run at a lower frequency, it leaves less timing margin than single packing mode. 
-Therefore it is generally more likely for double packing to work on a give platform.
+Therefore it is generally more likely for single packing to work on a give platform.
 
 ```c
 ws2812b_handle_t h;
