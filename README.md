@@ -416,7 +416,7 @@ Make calls [scripts/run_tests.py](scripts/run_tests.py) to run tests, generate r
 
 Formatting handled with clang_format.
 
-All code committed should conform to the [.clang_format](.clang_format) file included. 
+All code committed should conform to the [.clang_format](.clang-format) file included. 
 
 To format all code run:
 ```bash
